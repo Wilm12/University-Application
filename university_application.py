@@ -13,8 +13,12 @@
 # If a student has applied and wants to check the application status,they selected option 2 and follow instructions to check
   
 import sqlite3
-# Create a table to save student information
+
 def create_student_table():
+    """
+    Create the student_information table in the database if it doesn't exist. 
+    The table includes fields for student ID, name, surname, and grade average.
+    """
     try:
         conn = sqlite3.connect("student_information.db")
         cursor = conn.cursor()
@@ -24,20 +28,44 @@ def create_student_table():
     except sqlite3.Error as e:
         print(f"Error creating student table: {e}")
     finally: conn.close()
-# Create a function to get information from the student
-# Initiate a class named Student to get an indidual student informatioin with defined properties
-# Get the input from the student and save that information within the table student_information
-# Return the student ID to retrieve information about a particular student
+
 def get_student_info():
+    """
+    Get information from the student and save it to the database. 
+    Get input from the user for their ID, name, surname, and grade average,
+    and saves this information to the student_information table.
+
+      Returns:
+        str: The student ID.
+    """
 
     class Student:
+        """ A class to represent a student. 
+        
+        Attributes:
+            i_d (str): The student's ID.
+            name (str): The student's first name.
+            surname (str): The student's surname.
+            grade_average (int): The student's grade average. """
         def __init__(self, i_d, name, surname, grade_average):
+            """ 
+            Initialize the Student with ID, name, surname, and grade average.
+
+            Parameters:
+                i_d (str): The student's ID. 
+                name (str): The student's first name.
+                surname (str): The student's surname.
+                grade_average (int): The student's grade average.
+            """
             self.i_d = i_d
             self.name = name
             self.surname = surname
             self.grade_average = grade_average
 
         def save_to_db(self):
+            """
+            Save the student's information to the database.
+            """
             try:
                 conn = sqlite3.connect("student_information.db")
                 cursor = conn.cursor()
@@ -56,13 +84,21 @@ def get_student_info():
         grade_average = int(input("Enter your grade average: "))
         student = Student(i_d, name, surname, grade_average)
         student.save_to_db()
-        return i_d
+        return i_d # Return i_d to retrieve student information with it
     except ValueError as e:
         print(f"Invalid input: {e}")
 # Create a function to retieve students who qualified
 # Execute a query to get qualified students based on their grade average being equal to or greater than required average
 # Return qualified students for later use
 def get_qualified_students_by_id(student_id):
+    """
+      Retrieve the students who qualify for courses based on their grade average.
+
+        Parameters: 
+            student_id (str): The student ID to filter the query.
+        Returns: 
+            list: A list of tuples containing information about the qualified students and courses.
+    """
     conn = sqlite3.connect("student_information.db")
     cursor = conn.cursor()
     cursor.execute("ATTACH DATABASE 'courses.db' AS courses")
@@ -78,8 +114,14 @@ def get_qualified_students_by_id(student_id):
 # The selected university is returned
 
 def select_university(qualified_students):
+    """ Select a university from the list of qualified universities.
+      Parameters:
+          qualified_students (list): A list of tuples containing information about the qualified students and courses.
+      Returns:
+          str: The selected university.
+    """
     try:
-        universities = set(student[3] for student in qualified_students)
+        universities = set(student[3] for student in qualified_students) # Use the set function to retrieve unique universities
         print("Select a university:")
         for i, university in enumerate(universities):
             print(f"{i + 1}. {university}")
@@ -92,6 +134,15 @@ def select_university(qualified_students):
 # qualified_students and selected_university are passed to the function to retrieve faculties within a chosen unversity
 # These are only faculties containg courses that the student qualifies for based on the grades average
 def select_faculty(qualified_students, selected_university):
+    """ Select a faculty from the list of faculties within the selected university.
+    
+    Parameters:
+        qualified_students (list): A list of tuples containing information about the qualified students and courses.
+        selected_university (str): The selected university.
+
+    Returns: str:
+        The selected faculty.
+    """
     try:
         faculties = set(student[4] for student in qualified_students if student[3] == selected_university)
         print("Select a faculty:")
@@ -103,6 +154,16 @@ def select_faculty(qualified_students, selected_university):
         print(f"Invalid input: {e}")
 # Create function to select a course
 def select_course(qualified_students, selected_university, selected_faculty):
+    """ 
+    Select a course from the list of courses within the selected faculty and university.
+
+    Parameters:
+        qualified_students (list): A list of tuples containing information about the qualified students and courses.
+        selected_university (str): The selected university. selected_faculty (str): The selected faculty.
+         
+    Returns: 
+        str: The selected course.
+    """
     try:
         courses = set(student[5] for student in qualified_students if student[3] == selected_university and student[4] == selected_faculty)
         print("Select a course:")
@@ -114,6 +175,16 @@ def select_course(qualified_students, selected_university, selected_faculty):
         print(f"Invalid value: {e}")
 # Create a function to check space availability
 def check_course_capacity(selected_university, selected_faculty, selected_course):
+    """
+    Check if there is available capacity for a selected course.
+   
+    Parameters: selected_university (str): The selected university.
+        selected_faculty (str): The selected faculty. 
+        selected_course (str): The selected course. 
+        
+    Returns:
+        bool: True if there is capacity available, False otherwise.
+    """
     conn = sqlite3.connect("courses.db")
     cursor = conn.cursor()
     cursor.execute('''SELECT current_students, max_students FROM courses
@@ -128,6 +199,14 @@ def check_course_capacity(selected_university, selected_faculty, selected_course
 # Create function to add a student to the current applications in a course
 
 def update_course_enrolment(selected_university, selected_faculty, selected_course):
+    """
+    Update the course enrolment by adding one student to the current student count. 
+    
+    Parameters: 
+        selected_university (str): The selected university.
+        selected_faculty (str): The selected faculty.
+        selected_course (str): The selected course.
+    """
     try:
         conn = sqlite3.connect("courses.db")
         cursor = conn.cursor()
@@ -141,6 +220,12 @@ def update_course_enrolment(selected_university, selected_faculty, selected_cour
         conn.close()
 # Create function to check the application status
 def check_application_status():
+    """
+    Check the application status for a student.
+    Asks the user for their student ID and retrieves their application status.
+     
+    Returns:
+        None """
     i_d = input("Enter your student ID to check application status: ")
     with sqlite3.connect("student_information.db") as conn:
         cursor = conn.cursor()
@@ -161,6 +246,11 @@ def check_application_status():
             print("No application found or you do not meet the requirements.")
 
 def main_application():
+    """
+    Main function to handle the application process.
+    Asks the user to either apply for a course or check the application status.
+    Manages the workflow of getting student information, checking qualifications, and updating enrolment.
+    """
     try:
         create_student_table()
 
@@ -176,13 +266,13 @@ def main_application():
                     print("You selected apply")
                     student_id = get_student_info()
                     qualified_students = get_qualified_students_by_id(student_id)
-                    if not qualified_students:
+                    if not qualified_students: # This line indicates that student does not qualify based on the average
                         print("No courses available for your grade average.")
                         break
                     selected_university = select_university(qualified_students)
                     selected_faculty = select_faculty(qualified_students, selected_university)
                     selected_course = select_course(qualified_students, selected_university, selected_faculty)
-                    if not check_course_capacity(selected_university, selected_faculty, selected_course):
+                    if not check_course_capacity(selected_university, selected_faculty, selected_course): # This line indicates no space
                         print(f"Sorry, the course {selected_course} is full and cannot accept more students.")
                         break
                     print(f"You have applied for: {selected_course} in the faculty of {selected_faculty} at the {selected_university}")
