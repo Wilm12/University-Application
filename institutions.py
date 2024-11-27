@@ -1,3 +1,5 @@
+# This code is meant to create a database of universities and the courses they offer
+
 import sqlite3
 
 # Create courses table
@@ -15,35 +17,75 @@ def create_courses_table():
         conn.close()
 
 class Course:
+    """ A class to represent a faculty course in a university.
+
+        Attributes:
+            name (str): The name of the course. 
+            required_avg (int): The required average for the course. 
+            max_students (int): The maximum number of students allowed. 
+            current_students (int): The current number of students enrolled.
+    """
     def __init__(self, name, required_avg, max_students):
+        """ Initialize the Course with name, required average, and maximum students.
+          Parameters:
+           
+              name (str): The name of the course.
+              required_avg (int): The required average for the course.
+              max_students (int): The maximum number of students allowed.
+        """
         self.name = name
         self.required_avg = required_avg
         self.max_students = max_students
-        self.current_students = 0
+        self.current_students = 0 # Current students set to 0 to establish a starting point
 
 class Faculty:
+    """ A class to represent a faculty.
+
+    Attributes:
+        name (str): The name of the faculty. 
+        courses (list): A list of courses offered by the faculty.
+    """
     def __init__(self, name):
         self.name = name
-        self.courses = []
-
+        self.courses = [] #Empty list to add courses
+# Method to add courses to the list in a faculty
     def add_course(self, course):
+        """ Add a course to the faculty.
+
+          Parameters: 
+              course (Course): The course to be added. 
+        """  
         self.courses.append(course)
 
 class University:
+    """ A class to represent a university. 
+
+    Attributes:
+        name (str): The name of the university.
+        faculties (list): A list of faculties in the university.
+    """
     def __init__(self, name):
         self.name = name
         self.faculties = []
 
     def add_faculty(self, faculty):
+        """ Add a faculty to the university.
+
+          Parameters:
+              faculty (Faculty): The faculty to be added.
+        """
         self.faculties.append(faculty)
 
     def save_info(self):
+        """
+        Save the university information to the database.
+        """
         try:
             conn = sqlite3.connect("courses.db")
             cursor = conn.cursor()
 
-            for faculty in self.faculties:
-                for course in faculty.courses:
+            for faculty in self.faculties: # Loop iterates over each Faculty object
+                for course in faculty.courses: #Loop iterates over each Course object in the faculty.courses list
                     cursor.execute('''INSERT INTO courses (university, faculty, course, required_avg, max_students, current_students)
                                     VALUES(?, ?, ?, ?, ?, ?)''',
                                 (self.name, faculty.name, course.name, course.required_avg, course.max_students, course.current_students))
@@ -55,6 +97,9 @@ class University:
             conn.close()
 
 def create_course_db():
+    """ 
+    Create a database entry for a university and its faculties and courses.
+    """
     try:
         university_name = input("Enter university name: ")
         university = University(university_name)
@@ -81,6 +126,9 @@ def create_course_db():
         print(f"Invalid input: {e}")
 
 def main():
+    """ 
+    Main function to create the courses table and insert into the database.
+    """
     create_courses_table()
     create_course_db()
 
